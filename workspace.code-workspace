@@ -1,0 +1,68 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"launch": {
+		"configurations": [
+			{
+				// Version 15.04.2021
+				"name": "Debug (OpenOCD)",
+				"cwd": "${workspaceRoot}",
+				"executable": "./build/${workspaceFolderBasename}.elf",
+				"request": "launch",
+				"type": "cortex-debug",
+				"servertype": "openocd",
+				"device": "RP2040",
+				"runToEntryPoint": "main",
+				"interface": "swd",
+				"svdFile": "${env:PICO_SDK_PATH}/src/rp2040/hardware_regs/rp2040.svd",
+				"configFiles": [
+					"interface/picoprobe.cfg",
+					"target/rp2040.cfg"
+					]
+			}   
+		],
+		"compounds": []
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "Upload to Pico",
+				"detail": "Build and install picotool from source to upload code to your pico via BOOTSEL.",
+				"type": "shell",
+				"command": "picotool load 'build/${workspaceFolderBasename}.uf2' && picotool reboot",
+				"args": [],
+				"problemMatcher": [],
+				"group": {
+					"kind": "build",
+					"isDefault": true
+				}
+			}
+		]
+	},
+	"settings": {
+		"telemetry.enableCrashReporter": false,
+		"telemetry.enableTelemetry": false,
+		"window.autoDetectColorScheme": true,
+		"cmake.statusbar.advanced": {
+			"debug": {
+				"visibility": "hidden"
+			},
+			"launch": {
+				"visibility": "hidden"
+			},
+			"build": {
+				"visibility": "default"
+			},
+			"buildTarget": {
+				"visibility": "hidden"
+			}
+		},
+		"cmake.configureOnOpen": true,
+		"cmake.buildBeforeRun": true,
+		"C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+	}
+}
