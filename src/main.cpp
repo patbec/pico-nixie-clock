@@ -41,10 +41,16 @@ int main()
     pinLayoutClock.tube4Pins = pinLayoutTube4;
 
     pinLayoutClock.pointsPins = pinLayoutPoints;
+    pinLayoutClock.DCFPin = 28;
 
-    pinLayoutClock.DCFPinData = 28;
-    pinLayoutClock.DCFSignalStatus = 27;
-    pinLayoutClock.DCFSignalHeartbeat = 26;
+    // Funktionstest
+    // uint8_t functionTestButtonPin = 15;
+    // if(functionTestButtonPin != UINT8_MAX) {
+    //     gpio_init(functionTestButtonPin);
+    //     gpio_set_dir(functionTestButtonPin, GPIO_IN);
+
+    //     if(gpio_get(functionTestButtonPin))
+    // }
 
     ClockDriver *clock = new ClockDriver(pinLayoutClock);
 
@@ -57,9 +63,15 @@ int main()
 
     // pointsDriver->powerOn();
 
-    int counter = 0;
+    // int counter = 0;
     // int frame = 0;
     // bool pointBit = true;
+    //uint8_t functionTestButtonPin = 15;
+
+    //if(functionTestButtonPin != UINT8_MAX) {
+    //    gpio_init(functionTestButtonPin);
+    //    gpio_set_dir(functionTestButtonPin, GPIO_IN);
+    //}
 
     while (true)
     {

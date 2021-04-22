@@ -3,19 +3,16 @@
 
 #include "TubeDriver.h"
 #include "DCFDriver.h"
+#include "hardware/rtc.h"
+#include "pico/util/datetime.h"
 
 enum ClockDriverState
 {
-    // Einmalig auszuführende Aktionen.
-    SETUP,
-    // Die Uhrzeit wird gesucht.
-    GETTING_TIME,
-    // Die Uhrzeit wurde gefunden und wird fortlaufend aktualisiert.
-    RUNNING,
-    // 
-    GOT_TIME,
-    // Bei der Zeitsuche wurde ein Problem erkannt, z.B. keine Rückmeldung vom DCF Treiber.
-    NO_SIGNAL
+    Setup = 0,
+    SearchTime = 1,
+    Running = 2,
+    Synchronize = 3,
+    Error = 4,
 };
 
 struct ClockPinLayout
@@ -25,31 +22,30 @@ struct ClockPinLayout
     TubePinLayout tube3Pins;
     TubePinLayout tube4Pins;
     TubePinLayout pointsPins;
-    uint8_t DCFPinData;
-    uint8_t DCFSignalHeartbeat; //Old: DCFSignalLight;
-    uint8_t DCFSignalStatus; //DCFSignalOkayPin;
+    uint8_t DCFPin;
 };
 
 class ClockDriver
 {
 private:
+    uint64_t lastSavedTime;
+    datetime_t rtc_buff;
+
     TubeDriver *tube1Driver;
     TubeDriver *tube2Driver;
     TubeDriver *tube3Driver;
     TubeDriver *tube4Driver;
     TubeDriver *pointsDriver;
     DCFDriver *dcfDriver;
-    ClockDriverState state = ClockDriverState::SETUP;
+    ClockDriverState state = ClockDriverState::Setup;
     void setState(ClockDriverState state);
-
+    void showCurrentTime();
+    bool isSecondPassed();
+    bool is5HoursPassed();
 public:
     ClockDriver(ClockPinLayout pinLayout);
     ~ClockDriver();
     void clock();
-    int getHour();
-    int getMinute();
-    bool getSignalOkay();
-    ClockDriverState getDriverState();
 };
 
 #endif

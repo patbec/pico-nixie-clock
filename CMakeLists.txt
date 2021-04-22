@@ -15,7 +15,7 @@ add_executable(pico-nixie-clock
     "src/main.cpp")
 
 # Angabe der benötigten Bibliothek(en): 
-target_link_libraries(pico-nixie-clock hardware_i2c pico_stdlib)
+target_link_libraries(pico-nixie-clock hardware_i2c pico_stdlib hardware_rtc)
 # Initialisieren des SDK: 
 pico_sdk_init()
 # Zugriff auf USB und UART ermöglichen (1 = enable, 0 = disable): 

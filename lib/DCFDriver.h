@@ -6,11 +6,23 @@
 // Must always be a multiple of 2 !!!!!! 
 int const SIGNAL_TIME_BUFFER_SIZE = 8;
 
+
+enum DCFDriverState2
+{
+    // Wartet bis das Start-Segment erkannt wurde.
+    WAIT_ON_START,
+    // Das Start-Segment wurde erkannt, jetzt dauert es 60 Sekunden bis der Buffer gefüllt wurde.
+    FILL_BUFFER,
+    // Im Buffer ist ein Bit gekippt. Kann an einer Störquelle liegen.
+    INVALID_DATA,
+    // Es kommen keine Signale an, DCF77 falsch angechlossen oder falschen Pin angegeben.
+    NO_SIGNAL,
+};
 enum DCFDriverState { SEARCH, OK, ERROR };
 
 class DCFDriver {
     private:
-        int signalPinData, signalStatus, signalHeartbeat;
+        int signalPinData;
         unsigned long signalTimeout;
         char dcf77Signal;
         char buffer;
@@ -32,7 +44,9 @@ class DCFDriver {
         bool signalOkay = false;
         void updateSignalTimeBuffer(long time);
     public:
-        DCFDriver(int signal_pin, int signal_timeout, int signal_status, int signal_heartbeat);
+        DCFDriver(uint8_t dataPin, int timeout);
+        bool has_signal_timout();
+        bool try_get_valid_time();
         int getHours();
         int getMinutes();
         DCFDriverState getTimeState();

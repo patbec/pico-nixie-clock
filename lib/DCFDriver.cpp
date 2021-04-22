@@ -7,26 +7,22 @@
 #include "pico/stdlib.h"
 #include "DCFDriver.h"
 
-DCFDriver::DCFDriver(int signal_pin_data, int signal_timeout, int signal_status, int signal_heartbeat)
+bool DCFDriver::has_signal_timout()
 {
-    signalPinData = signal_pin_data;
-    signalTimeout = signal_timeout;
-    signalStatus = signal_status;
-    signalHeartbeat = signal_heartbeat;
+    return timeState == DCFDriverState::ERROR;
+}
+bool DCFDriver::try_get_valid_time()
+{
+    return timeState == DCFDriverState::OK;
+}
 
-    gpio_init(signal_pin_data);
-    gpio_set_dir(signal_pin_data, GPIO_IN);
+DCFDriver::DCFDriver(uint8_t dataPin, int timeout)
+{
+    signalPinData = dataPin;
+    signalTimeout = timeout;
 
-    // Leuchtet wenn die empfangen Daten fehlerhaft sind. (z.B. durch eine Störquelle)
-    if (signalStatus != UINT8_MAX) {
-        gpio_init(signal_status);
-        gpio_set_dir(signal_status, GPIO_OUT);
-    }
-    // Leuchtet wenn ein Signal empfangen wurde.
-    if (signal_heartbeat != UINT8_MAX) {
-        gpio_init(signal_heartbeat);
-        gpio_set_dir(signal_heartbeat, GPIO_OUT);
-    }
+    gpio_init(dataPin);
+    gpio_set_dir(dataPin, GPIO_IN);
 }
 
 int DCFDriver::getHours()
@@ -168,22 +164,15 @@ void DCFDriver::decodeTime()
 void DCFDriver::update()
 {
     dcf77Signal = gpio_get(signalPinData);
-    nowTime = time_us_64() / 1000; // ToDo: Check
+    nowTime = time_us_64() / 1000;
     if (dcf77Signal != buffer)
     {
-        sleep_us(5000); // ToDo: Check and Test //Wartezeit bis eingeschwungener Zustand
+        sleep_us(5000); //Wartezeit bis eingeschwungener Zustand
         diffTime = nowTime - lastTime;
         lastTime = nowTime;
 
         updateSignalTimeBuffer(diffTime); // Must happen here, dont move !!!!
-
-        // ToDo: Bei einem schlechten Signal wird KEIN Fehler ausgelöst.
         signalOkay = checkSignalOkay();   // Must happen here, dont move !!!!
-
-        // ToDo: Fix this, Status if always ERROR
-        // if( ! signalOkay) {
-        //     timeState = DCFDriverState::ERROR;
-        // }
 
         if (diffTime < 150)
             impulsLevel = 0;
@@ -204,15 +193,7 @@ void DCFDriver::update()
         {
             timeState = DCFDriverState::SEARCH;
         }
-        // if (timeState == DCFDriverState::ERROR)
-        // {   
-        //     // ToDo: Fix this, Status if always ERROR
-        //     if(signalOkay) {
-        //         timeState = DCFDriverState::SEARCH;
-        //     } else {
-        //         timeState = DCFDriverState::ERROR;       
-        //     }
-        // }
+
         buffer = dcf77Signal;
         bufferChanged = true;
     }
@@ -223,16 +204,5 @@ void DCFDriver::update()
         unsigned long noSignalTime = nowTime - lastTime;
         if (noSignalTime > signalTimeout)
             timeState = DCFDriverState::ERROR;
-    }
-
-    // Pulls signalHeartbeat to HIGH on good Signal, else LOW
-    if (signalHeartbeat != UINT8_MAX)
-    {
-        gpio_put(signalHeartbeat, signalOkay);
-    }
-    // Lights up shortly when a signal has been received via the radio-controlled clock.
-    if (signalStatus != UINT8_MAX)
-    {
-        gpio_put(signalStatus, bufferChanged);
     }
 }
