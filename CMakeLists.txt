@@ -26,5 +26,5 @@ pico_enable_stdio_uart(pico-nixie-clock 1)
 pico_add_extra_outputs(pico-nixie-clock)
 
 pico_set_program_name(pico-nixie-clock "Nixie Clock")
-pico_set_program_description(pico-nixie-clock "Code for a Nixie clock with an RP2040.")
-pico_set_program_url(pico-nixie-clock "www.github.com/patbec")
+pico_set_program_description(pico-nixie-clock "Example code for a Nixie clock with an Raspberry Pi Pico (RP2040).")
+pico_set_program_url(pico-nixie-clock "https://github.com/patbec/pico-nixie-clock")
