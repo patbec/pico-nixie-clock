@@ -23,6 +23,9 @@ DCFDriver::DCFDriver(uint8_t dataPin, int timeout)
 
     gpio_init(dataPin);
     gpio_set_dir(dataPin, GPIO_IN);
+
+    gpio_init(15);
+    gpio_set_dir(15, GPIO_OUT);
 }
 
 int DCFDriver::getHours()
@@ -173,6 +176,8 @@ void DCFDriver::update()
 
         updateSignalTimeBuffer(diffTime); // Must happen here, dont move !!!!
         signalOkay = checkSignalOkay();   // Must happen here, dont move !!!!
+
+        gpio_put(15, signalOkay);
 
         if (diffTime < 150)
             impulsLevel = 0;

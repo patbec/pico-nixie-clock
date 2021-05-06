@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 2050 400" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g id="Reset-Signal" serif:id="Reset Signal" transform="matrix(1,0,0,1,50,100)">
+        <g transform="matrix(0.833333,0,0,1,10,0)">
+            <rect x="0" y="84" width="60" height="50" style="fill:rgb(26,194,230);"/>
+        </g>
+        <g transform="matrix(1,0,0,1,-220.503,30.0368)">
+            <text x="239px" y="40px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:41.881px;">R</text>
+        </g>
+    </g>
+    <g id="Sync-Signal" serif:id="Sync Signal" transform="matrix(1,0,0,1,50,100)">
+        <g transform="matrix(2.33918,0,0,1,-80.3509,0)">
+            <rect x="60" y="84" width="513" height="50" style="fill:rgb(64,191,79);"/>
+        </g>
+        <g transform="matrix(1,0,0,1,310.949,25.8855)">
+            <text x="239px" y="40px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:41.881px;">Sync Signal</text>
+        </g>
+    </g>
+    <g id="Package-Header" serif:id="Package Header" transform="matrix(1,0,0,1,50,100)">
+        <g transform="matrix(0.623782,0,0,1,1222.57,0)">
+            <rect x="60" y="84" width="513" height="50" style="fill:rgb(38,123,217);"/>
+        </g>
+        <g transform="matrix(1,0,0,1,-8.41002,1.80641)">
+            <text x="1282px" y="109px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:6.98px;">Magic Character</text>
+        </g>
+        <g transform="matrix(1,0,0,1,72.241,1.69659)">
+            <text x="1282px" y="109px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:6.98px;">Package Length</text>
+        </g>
+        <g transform="matrix(1,0,0,1,156.709,1.80641)">
+            <text x="1282px" y="109px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:6.98px;">Content CRC</text>
+        </g>
+        <g transform="matrix(1,0,0,1,237.881,1.80641)">
+            <text x="1282px" y="109px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:6.98px;">Header CRC</text>
+        </g>
+        <rect x="1339" y="84" width="1" height="50" style="fill-opacity:0.31;"/>
+        <g transform="matrix(1,0,0,1,80,0)">
+            <rect x="1339" y="84" width="1" height="50" style="fill-opacity:0.31;"/>
+        </g>
+        <g transform="matrix(1,0,0,1,160,0)">
+            <rect x="1339" y="84" width="1" height="50" style="fill-opacity:0.31;"/>
+        </g>
+        <g transform="matrix(1,0,0,1,1110.36,25.3796)">
+            <text x="239px" y="40px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:41.881px;">Header</text>
+        </g>
+    </g>
+    <g id="Package-Content" serif:id="Package Content" transform="matrix(1,0,0,1,50,100)">
+        <g transform="matrix(0.623782,0,0,1,1542.57,0)">
+            <rect x="60" y="84" width="513" height="50" style="fill:rgb(121,115,140);"/>
+        </g>
+        <g transform="matrix(1,0,0,1,1426.77,25.8855)">
+            <text x="239px" y="40px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:41.881px;">Content</text>
+        </g>
+    </g>
+    <g id="Info" transform="matrix(1,0,0,1,1250,100)">
+        <g transform="matrix(2.97717,0,0,1,-4942.25,0.0374233)">
+            <rect x="1259" y="163.975" width="641" height="16.025"/>
+        </g>
+        <g transform="matrix(0.728267,0,0,0.728267,-2116.12,58.8586)">
+            <text x="1283px" y="158.391px" style="font-family:'Arial-BoldMT', 'Arial', sans-serif;font-weight:700;font-size:8.382px;fill:white;">LOW<tspan x="1302.38px 1305.17px " y="158.391px 158.391px ">-S</tspan>ignal</text>
+        </g>
+        <g transform="matrix(0.728267,0,0,0.728267,-1492.18,58.8586)">
+            <text x="1283px" y="158.391px" style="font-family:'Arial-BoldMT', 'Arial', sans-serif;font-weight:700;font-size:8.382px;fill:white;">HIGH-Signal</text>
+        </g>
+        <g transform="matrix(3.63424e-17,0.593517,-0.5206,3.18776e-17,805.09,-946.495)">
+            <path d="M1884.5,150L1898,174.272L1871,174.272L1884.5,150Z"/>
+        </g>
+        <g transform="matrix(1,0,0,1,-1201,-1.98753)">
+            <path d="M62,154.5C62,154.224 61.776,154 61.5,154L60.5,154C60.224,154 60,154.224 60,154.5L60,166L62,166L62,154.5Z"/>
+        </g>
+        <g transform="matrix(1,0,0,1,-1250,-1.98753)">
+            <path d="M62,154.5C62,154.224 61.776,154 61.5,154L60.5,154C60.224,154 60,154.224 60,154.5L60,166L62,166L62,154.5Z"/>
+        </g>
+        <g transform="matrix(1,0,0,0.583333,-1,67.1667)">
+            <path d="M62,154.857C62,154.384 61.776,154 61.5,154L60.5,154C60.224,154 60,154.384 60,154.857L60,166L62,166L62,154.857Z"/>
+        </g>
+        <g transform="matrix(1,0,0,1,-1,11.9751)">
+            <rect x="60" y="154" width="2" height="12" style="fill:white;"/>
+        </g>
+        <g transform="matrix(1,0,0,1,-1201,12.0249)">
+            <rect x="60" y="154" width="2" height="12" style="fill:white;"/>
+        </g>
+        <g transform="matrix(1,0,0,1,-1250,12.0249)">
+            <rect x="60" y="154" width="2" height="12" style="fill:white;"/>
+        </g>
+        <g transform="matrix(1,0,0,1,-1167.5,-1.49361)">
+            <text x="606px" y="158px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:14px;">1,2 ms</text>
+        </g>
+        <g transform="matrix(1,0,0,1,-1791.53,-1.49361)">
+            <text x="606px" y="158px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:14px;">0,5 ms</text>
+        </g>
+        <g transform="matrix(0.5,0,0,0.997921,109,12.3202)">
+            <path d="M62,154.251C62,154.112 61.776,154 61.5,154L60.5,154C60.224,154 60,154.112 60,154.251L60,165.749C60,165.888 60.224,166 60.5,166L61.5,166C61.776,166 62,165.888 62,165.749L62,154.251Z" style="fill:white;"/>
+        </g>
+        <g transform="matrix(0.5,0,0,0.997921,189,12.3202)">
+            <path d="M62,154.251C62,154.112 61.776,154 61.5,154L60.5,154C60.224,154 60,154.112 60,154.251L60,165.749C60,165.888 60.224,166 60.5,166L61.5,166C61.776,166 62,165.888 62,165.749L62,154.251Z" style="fill:white;"/>
+        </g>
+        <g transform="matrix(0.5,0,0,0.997921,269,12.3202)">
+            <path d="M62,154.251C62,154.112 61.776,154 61.5,154L60.5,154C60.224,154 60,154.112 60,154.251L60,165.749C60,165.888 60.224,166 60.5,166L61.5,166C61.776,166 62,165.888 62,165.749L62,154.251Z" style="fill:white;"/>
+        </g>
+        <g transform="matrix(1,0,0,1,-407.031,-1.5375)">
+            <text x="606px" y="158px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:14px;">3,2 ms</text>
+        </g>
+        <g transform="matrix(1,0,0,0.583333,319,67.1417)">
+            <path d="M62,154.857C62,154.384 61.776,154 61.5,154L60.5,154C60.224,154 60,154.384 60,154.857L60,166L62,166L62,154.857Z"/>
+        </g>
+        <g transform="matrix(1,0,0,1,638,-2.02495)">
+            <path d="M62,154.5C62,154.224 61.776,154 61.5,154L60.5,154C60.224,154 60,154.224 60,154.5L60,166L62,166L62,154.5Z"/>
+        </g>
+        <g transform="matrix(1,0,0,1,638,11.9751)">
+            <rect x="60" y="154" width="2" height="12" style="fill:white;"/>
+        </g>
+        <g transform="matrix(1,0,0,1,319,12.0249)">
+            <rect x="60" y="154" width="2" height="12" style="fill:white;"/>
+        </g>
+        <g transform="matrix(1,0,0,1,-110.365,-1.5375)">
+            <text x="606px" y="158px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:14px;">0 ms - 204 ms</text>
+        </g>
+        <g transform="matrix(0.728267,0,0,0.728267,-843.154,58.7364)">
+            <text x="1283px" y="158.391px" style="font-family:'Arial-BoldMT', 'Arial', sans-serif;font-weight:700;font-size:8.382px;fill:white;">8 Bits</text>
+        </g>
+        <g transform="matrix(0.728267,0,0,0.728267,-763.154,58.7364)">
+            <text x="1283px" y="158.391px" style="font-family:'Arial-BoldMT', 'Arial', sans-serif;font-weight:700;font-size:8.382px;fill:white;">8 Bits</text>
+        </g>
+        <g transform="matrix(0.728267,0,0,0.728267,-683.154,58.7364)">
+            <text x="1283px" y="158.391px" style="font-family:'Arial-BoldMT', 'Arial', sans-serif;font-weight:700;font-size:8.382px;fill:white;">8 Bits</text>
+        </g>
+        <g transform="matrix(0.728267,0,0,0.728267,-602.654,58.7364)">
+            <text x="1283px" y="158.391px" style="font-family:'Arial-BoldMT', 'Arial', sans-serif;font-weight:700;font-size:8.382px;fill:white;">8 Bits</text>
+        </g>
+        <g transform="matrix(0.728267,0,0,0.728267,-479.112,58.2536)">
+            <text x="1283px" y="158.391px" style="font-family:'Arial-BoldMT', 'Arial', sans-serif;font-weight:700;font-size:8.382px;fill:white;">V<tspan x="1288.13px 1292.79px " y="158.391px 158.391px ">ar</tspan>iable Bit Length (max. 255 Characters = max. 2040 Bits)</text>
+        </g>
+    </g>
+    <g transform="matrix(1,0,0,1,-20,-3.55271e-15)">
+        <text x="76px" y="74.359px" style="font-family:'Arial-BoldItalicMT', 'Arial', sans-serif;font-weight:700;font-style:italic;font-size:48px;">Package Format for BusDriver</text>
+        <rect x="76" y="79.445" width="690.914" height="5.039"/>
+    </g>
+    <g transform="matrix(1,0,0,1,-4,3)">
+        <text x="60px" y="362.282px" style="font-family:'HelveticaNeue', 'Helvetica Neue';font-size:13px;">Signal clock is</text>
+        <text x="147.152px" y="362.282px" style="font-family:'HelveticaNeue', 'Helvetica Neue';font-size:13px;fill:rgb(13,112,245);">100</text>
+        <text x="172.45px" y="362.282px" style="font-family:'HelveticaNeue', 'Helvetica Neue';font-size:13px;fill:rgb(209,81,199);">µs</text>
+        <text x="186.178px" y="362.282px" style="font-family:'HelveticaNeue', 'Helvetica Neue';font-size:13px;">.</text>
+        <text x="60px" y="374.282px" style="font-family:'HelveticaNeue', 'Helvetica Neue';font-size:10px;fill:rgb(183,183,183);">https://github.com/patbec/pico-nixie-clock/blob/master/help/Package-Format-for<tspan x="425.05px 428.94px " y="374.282px 374.282px ">-B</tspan>usDriver<tspan x="471.72px 474.5px " y="374.282px 374.282px ">.s</tspan>vg</text>
+    </g>
+</svg>

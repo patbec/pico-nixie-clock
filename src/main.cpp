@@ -1,9 +1,20 @@
 #include "pico/stdlib.h"
+#include "pico/multicore.h"
 #include "../lib/TubeDriver.h"
 #include "../lib/ClockDriver.h"
+#include "../lib/BusDriver.h"
+
+void core1_entry() {
+    while(true) {
+       sleep_us(200000); // Wait 200ms
+       BusDriver::sendData(NULL, 27);
+    }
+}
 
 int main()
 {
+    multicore_launch_core1(core1_entry);
+
     struct TubePinLayout pinLayoutPoints;
     pinLayoutPoints.pinA = 17;
     pinLayoutPoints.pinB = 16;
@@ -73,8 +84,11 @@ int main()
     //    gpio_set_dir(functionTestButtonPin, GPIO_IN);
     //}
 
+    BusDriver *bus = new BusDriver(26);
+
     while (true)
     {
+        bus->readData(); 
         clock->clock();
 
         // tube1->showDigit(counter);
