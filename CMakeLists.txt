@@ -14,6 +14,8 @@ add_executable(pico-nixie-clock
     "lib/DCFDriver.cpp"
     "lib/BusDriver.h"
     "lib/BusDriver.cpp"
+    "lib/CRC8.h"
+    "lib/CRC8.cpp"
     "src/main.cpp")
 
 # Angabe der benötigten Bibliothek(en): 
