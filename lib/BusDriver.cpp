@@ -7,11 +7,6 @@ uint64_t BusDriver::baudsync = 1200;
 uint64_t BusDriver::baudclear = 500;
 uint64_t BusDriver::dataSend = 0;
 
-uint64_t BusDriver::MAX_PACKAGE_LENGTH = 1024; // Chars
-uint64_t BusDriver::MAX_HEADER_LENGTH = 32;    // Bits
-
-//bool BusDriver::bufferValid[8] = {0,1,0,0,1,1,0,1};
-
 BusDriver::BusDriver(int pin)
 {
     this->pin = pin;
@@ -21,309 +16,303 @@ BusDriver::BusDriver(int pin)
     gpio_set_dir(pin, GPIO_IN);
 }
 
-bool BusDriver::sendData(char buffer[], int pin)
+bool BusDriver::sendData(Package package, int pin)
 {
     gpio_init(pin);
     gpio_set_dir(pin, GPIO_OUT);
 
-    int myCurrentPackageLength = 11;
+    uint8_t sbuffer[259] = {0};
 
-    uint8_t package[myCurrentPackageLength + 1] = {0};
-    bool debug[(myCurrentPackageLength + 1) * 8] = {0};
-
-    package[0] = 'M';        // Magic Char
-    package[1] = (uint8_t)8; // Package Length
-    package[2] = 0;          // Content CRC
-    package[3] = 0;          // Header CRC
-
-    package[4] = 'A'; // Content
-    package[5] = 'B'; // Content
-    package[6] = 'C'; // Content
-    package[7] = 'D'; // Content
-
-    package[8] = 'Q';  // Content
-    package[9] = 'W';  // Content
-    package[10] = 'E'; // Content
-    package[11] = 'R'; // Content
-
-    package[2] = CRC8().Compute_CRC8(package, 4, 11);
-    package[3] = CRC8().Compute_CRC8(package, 0, 2);
-
-    // 01001101 01000000 00000000 00000000
-    // 01001101 01000001 01001001 01001110
-
-    for (size_t i = 0; i < myCurrentPackageLength + 1; i++)
+    // Schreibe den Inhalt in den Buffer.
+    for (size_t i = 0; i < package.contentLength; i++)
     {
-        int pos = i * 8;
-
-        unsigned char character = package[i];
-
-        debug[pos + 0] = (character >> 7) & 1;
-        debug[pos + 1] = (character >> 6) & 1;
-        debug[pos + 2] = (character >> 5) & 1;
-        debug[pos + 3] = (character >> 4) & 1;
-        debug[pos + 4] = (character >> 3) & 1;
-        debug[pos + 5] = (character >> 2) & 1;
-        debug[pos + 6] = (character >> 1) & 1;
-        debug[pos + 7] = (character >> 0) & 1;
+        sbuffer[PAK_LENGTH + i] = package.content[i];
     }
 
+    // Paketkopf schreiben.
+    sbuffer[PAK_HEAD0_IDENT]         = package.identity;
+    sbuffer[PAK_HEAD1_LENGTH]        = package.contentLength;
+    sbuffer[PAK_HEAD2_CRC_CONTENT]   = CRC8().Compute_CRC8(sbuffer, PAK_LENGTH, PAK_LENGTH + package.contentLength);
+    sbuffer[PAK_HEAD3_CRC_HEADER]    = CRC8().Compute_CRC8(sbuffer, 0, PAK_HEAD2_CRC_CONTENT);
+
+    uint16_t packageLength = PAK_LENGTH + package.contentLength;
+    
+    // Sende SYNC-Signal.
     gpio_put(pin, false);
     sleep_us(baudclear);
-    // Sync signal
     gpio_put(pin, true);
     sleep_us(baudsync);
 
-    int target = (myCurrentPackageLength + 1) * 8;
-
-    for (size_t i = 0; i < target; i++)
+    // Sende Paket.
+    for (uint16_t posByte = 0; posByte < packageLength; posByte++)
     {
-        gpio_put(pin, debug[i]);
-        sleep_us(baudrate);
+        unsigned char character = sbuffer[posByte];
+        unsigned char test = character;
+        // Bits senden.
+        for (int8_t posBit = 7; posBit >= 0; posBit--)
+        {
+            bool bitToSend = (character >> posBit) & 1;
+            gpio_put(pin, bitToSend);
+            sleep_us(baudrate);
+        }
     }
 
-    dataSend++;
     return true;
-}
-
-uint8_t *BusDriver::getContent()
-{
-    return NULL;
 }
 
 void BusDriver::changeState(BusDriverState newState)
 {
-
     state = newState;
 
     switch (state)
     {
-    case BusDriverState::SynchronizeSignal:
-    {
-        errors = 0;
-        lastData = false;
-        lastSignalTime = time_us_64();
-        break;
-    }
-    case BusDriverState::PackageInfo:
-    {
-        // Werte zurücksetzen.
-        bufferCount = 0;
-        //buffer = {0};
-        //content = {0};
+        case BusDriverState::SynchronizeSignal:
+        {
+            // Warte auf das SYNC-Signal vom Sender.
 
-        // Nice for debugging.
-        // for (size_t i = 0; i < MAX_PACKAGE_LENGTH * 8; i++)
-        // {
-        //     buffer[i] = 0;
-        // }
-        // for (size_t i = 0; i < MAX_PACKAGE_LENGTH; i++)
-        // {
-        //     content[i] = 0;
-        // }
+            lastData = false;
+            lastSignalTime = time_us_64();
 
-        packageCharacter = 0;
-        packageLength = 0;
-        packageChecksumHeader = 0;
-        packageChecksumContent = 0;
+            break;
+        }
+        case BusDriverState::PackageHeader:
+        {
+            // Beginnt den ankommenden Header aus dem Paket zu lesen.
 
-        break;
-    }
-    case BusDriverState::ReadContent:
-    {
-        // Werte zurücksetzen.
-        //bufferCount = 4;
-        break;
-    }
-    case BusDriverState::PackageCheck:
-    {
-        break;
-    }
+            for (size_t i = 0; i < 259; i++)
+            {
+                buffer[i] = 0;
+            }
+            bufferCount = 0;
+
+            bytesLeft = PAK_LENGTH;
+            cache = 0;
+            bitsRead = 0;
+
+            break;
+        }
+        case BusDriverState::PackageContent:
+        {
+            // Beginnt den ankommenden Inhalt aus dem Paket zu lesen.
+
+            bytesLeft = buffer[PAK_HEAD1_LENGTH];
+            cache = 0;
+
+            break;
+        }
+        case BusDriverState::PackageError:
+        {
+            // Tritt meistens bei CRC-Fehlern auf.
+
+            break;
+        }
+        case BusDriverState::PackageCompleted:
+        {
+            // Ein Paket wurde fehlerfrei gelesen.
+
+            cache = 0;
+
+            break;
+        }
     }
 }
 
-unsigned char BusDriver::readFromHeader(uint octet)
-{
-    int pos = octet * 8;
-    return buffer[pos + 0] << 7 |
-           buffer[pos + 1] << 6 |
-           buffer[pos + 2] << 5 |
-           buffer[pos + 3] << 4 |
-           buffer[pos + 4] << 3 |
-           buffer[pos + 5] << 2 |
-           buffer[pos + 6] << 1 |
-           buffer[pos + 7] << 0;
-}
-
-bool BusDriver::readData()
-{
+bool BusDriver::canRead() {
     uint64_t currentTime = time_us_64();
 
-    // ToDo: Add bufferCount overflow check here.
+    if ((currentTime - lastSignalTime) > baudrate) {
+        lastSignalTime += baudrate;
 
-    switch (state)
-    {
-    case BusDriverState::SynchronizeSignal:
-    {
-        bool data = gpio_get(pin);
-
-        if (lastData != data)
-        {
-
-            if (lastData)
-            {
-                uint64_t diffTime = currentTime - lastSignalTime;
-                lastSignalTime = currentTime;
-
-                // Prüfen ob die Synchronisierung geklappt hat.
-                if (diffTime > baudsync)
-                {
-                    // Für die perfekte Synchronisierung.
-                    lastSignalTime -= (baudrate / 2);
-
-                    changeState(BusDriverState::PackageInfo);
-                }
-            }
-            else
-            {
-                lastSignalTime = currentTime;
-            }
-
-            lastData = data;
-        }
-        break;
-    }
-    case BusDriverState::PackageInfo:
-    {
-        bool data = gpio_get(pin);
-
-        if (currentTime - lastSignalTime > baudrate)
-        {
-            lastSignalTime += baudrate;
-
-            buffer[bufferCount] = data;
-
-            // Auf validen Paketstart prüfen.
-            if (bufferCount < 8)
-            {
-                if (buffer[bufferCount] != bufferValid[bufferCount])
-                {
-                    errors++;
-
-                    // Nach 32 Lesefehlern aufgeben und auf das nächste Sync Signal warten.
-                    if (errors > MAX_HEADER_LENGTH)
-                    {
-                        // Ignore this message and wait on next sync signal.
-                        changeState(BusDriverState::SynchronizeSignal);
-                    }
-                    else
-                    {
-                        // Invalid Package start.
-                        changeState(BusDriverState::PackageInfo);
-                    }
-                    break;
-                }
-            }
-
-            bufferCount++;
-
-            // Prüfen ob der Paket-Header vollständig gelesen wurde.
-            if (bufferCount > MAX_HEADER_LENGTH)
-            {
-                changeState(BusDriverState::PackageCheck);
-            }
-        }
-        break;
-    }
-    case BusDriverState::PackageCheck:
-    {
-        packageCharacter = readFromHeader(0);
-        packageLength = readFromHeader(1);
-        packageChecksumContent = readFromHeader(2);
-        packageChecksumHeader = readFromHeader(3);
-
-        unsigned char dummy[8] = {0};
-
-        for (size_t octet = 0; octet < 8; octet++)
-        {
-            int pos = octet * 8;
-
-            dummy[octet] = buffer[pos + 0] << 7 |
-                           buffer[pos + 1] << 6 |
-                           buffer[pos + 2] << 5 |
-                           buffer[pos + 3] << 4 |
-                           buffer[pos + 4] << 3 |
-                           buffer[pos + 5] << 2 |
-                           buffer[pos + 6] << 1 |
-                           buffer[pos + 7] << 0;
-        }
-
-        // Check header with CRC8.
-        unsigned char headerChecksum = CRC8().Compute_CRC8(dummy, 0, 2);
-
-        // Validate Header
-        if (packageCharacter != 'M' || packageChecksumHeader != headerChecksum) // && packageLength > MAX_PACKAGE_LENGTH - MAX_HEADER_LENGTH
-        {
-            // Bei CRC Fehler im Header:
-            changeState(BusDriverState::SynchronizeSignal);
-        }
-        else
-        {
-            // Bei gültigen Header:
-            changeState(BusDriverState::ReadContent);
-        }
-        break;
-    }
-    case BusDriverState::ReadContent:
-    {
-        if (currentTime - lastSignalTime > baudrate)
-        {
-            lastSignalTime += baudrate;
-
-            buffer[bufferCount] = gpio_get(pin);
-            bufferCount++;
-
-            unsigned char content[260] = {0};
-
-            if (bufferCount > (packageLength * 8) + MAX_HEADER_LENGTH + 1)
-            {
-                int max = packageLength + (MAX_HEADER_LENGTH / 8);
-                for (size_t i = 0; i < max; i++)
-                {
-                    int pos = i * 8;
-
-                    unsigned char character;
-
-                    character = buffer[pos + 0] << 7 |
-                                buffer[pos + 1] << 6 |
-                                buffer[pos + 2] << 5 |
-                                buffer[pos + 3] << 4 |
-                                buffer[pos + 4] << 3 |
-                                buffer[pos + 5] << 2 |
-                                buffer[pos + 6] << 1 |
-                                buffer[pos + 7] << 0;
-
-                    content[i] = character;
-                }
-
-                // Check content with CRC8.
-                unsigned char contentChecksum = CRC8().Compute_CRC8(content, 4, 11);
-
-                if(contentChecksum != packageChecksumContent) {
-                    // CRC Fehler aufgetreten.
-                    changeState(BusDriverState::SynchronizeSignal);
-                }
-
-                // Vorbereitung um das nächste Paket zu lesen.
-                changeState(BusDriverState::PackageInfo);
-
-                // Erhaltene Daten zurückgeben.
-                return content[0] == true;
-            }
-        }
-        break;
-    }
+        return true;
     }
 
     return false;
+}
+
+uint8_t BusDriver::readByte2() {
+    bool data = gpio_get(pin);
+    
+    if (canRead())
+    {
+        // Bit auslesen und in den Byte Cache schreiben.
+        cache |= (data << (7 - bitsRead));
+        bitsRead++;
+
+        // Wenn 8 Bits gelesen, das Byte in den Puffer schreiben.
+        if (bitsRead == 8) {
+            bitsRead = 0;
+
+            buffer[bufferCount] = cache;
+            bufferCount++;
+
+            cache = 0;
+
+            // Wird in <see="changeState"/> festgelegt.
+            bytesLeft--;
+        }
+    }
+
+    return bytesLeft;
+}
+
+bool BusDriver::readByte() {
+    bool data = gpio_get(pin);
+    
+    if (canRead())
+    {
+        // Bit auslesen und in den Byte Cache schreiben.
+        cache |= (data << (7 - bitsRead));
+        bitsRead++;
+
+        // Wenn 8 Bits gelesen, das Byte in den Puffer schreiben.
+        if (bitsRead == 8) {
+            bitsRead = 0;
+
+            buffer[bufferCount] = cache;
+            bufferCount++;
+
+            cache = 0;
+
+            // Wird in <see="changeState"/> festgelegt.
+            bytesLeft--;
+
+            return (bytesLeft == 0);
+        }
+    }
+
+    return false;
+}
+
+
+bool BusDriver::readSync() {
+    uint64_t currentTime = time_us_64();
+
+    bool data = gpio_get(pin);
+
+    // Nur auf Änderungen reagieren.
+    if (lastData != data) {
+        bool dummy = lastData;
+        lastData = data;
+
+        // Nur auf das High-Signal reagieren.
+        if(dummy)
+        {
+            // Prüfen ob die Synchronisierung geklappt hat.
+            if ((currentTime - lastSignalTime) > baudsync)
+            {
+                // Für die perfekte Synchronisierung.
+                lastSignalTime = currentTime - (baudrate / 2);
+                // Erfolgreich synchronisiert.
+                return true;
+            }
+        }
+
+        // Letzte Signaländerung festhalten.
+        lastSignalTime = currentTime;
+    }
+
+    return false;
+}
+
+
+Package* BusDriver::readData()
+{
+    if(bufferCount > 259) {
+        changeState(BusDriverState::PackageError);
+        return NULL;
+    }
+
+    switch (state)
+    {
+        case BusDriverState::SynchronizeSignal:
+        {
+            // Auf das SYNC-Signal vom Sender warten.
+            if(readSync()) {
+                changeState(BusDriverState::PackageHeader);    
+            }
+            break;
+        }
+        case BusDriverState::PackageHeader:
+        {
+            // Alternative Methode:
+            // uint8_t bytesLeft = readByte2();
+
+            bool isCompleted = readByte();
+
+            // Prüfen ob der Header fertig gelesen wurde.
+            if (isCompleted)
+            {
+                // Informationen aus dem Header auslesen.
+                uint8_t packageIdentity = buffer[PAK_HEAD0_IDENT];
+                uint8_t packageHeaderChecksum = buffer[PAK_HEAD3_CRC_HEADER];
+
+                // CRC8 des empfangenen Headers berechnen.
+                uint8_t currentHeaderChecksum = CRC8().Compute_CRC8(buffer, 0, PAK_HEAD2_CRC_CONTENT);
+
+                // Prüfen ob ein CRC-Fehler aufgetreten oder nicht ein unterstütztes Paket empfangen wurde.
+                if (packageIdentity == 'M' && packageHeaderChecksum == currentHeaderChecksum) {
+                    changeState(BusDriverState::PackageContent);
+                } else {
+                    changeState(BusDriverState::PackageError);
+                }
+            }
+            break;
+        }
+        case BusDriverState::PackageContent:
+        {
+            // Alternative Methode:
+            // uint8_t bytesLeft = readByte2();
+
+            bool isCompleted = readByte();
+
+            // Prüfen ob der Inhalt fertig gelesen wurde.
+            if (isCompleted)
+            {
+                // Informationen aus dem Header auslesen.
+                uint8_t packageContentChecksum = buffer[PAK_HEAD2_CRC_CONTENT];
+
+                // CRC8 des empfangenen Inhaltes berechnen.
+                uint8_t currentHeaderChecksum = CRC8().Compute_CRC8(buffer, PAK_LENGTH, bufferCount);
+
+                // Prüfen ob ein CRC-Fehler im Inhalt aufgetreten ist.
+                if (packageContentChecksum == currentHeaderChecksum) {
+                    changeState(BusDriverState::PackageCompleted);
+                } else {
+                    changeState(BusDriverState::PackageError);
+                }
+            }
+            break;
+        }
+        case BusDriverState::PackageCompleted:
+        {
+            uint8_t packageIdentity         = buffer[PAK_HEAD0_IDENT];
+            uint8_t packageContentLength    = buffer[PAK_HEAD1_LENGTH];
+            uint8_t packageContentChecksum  = buffer[PAK_HEAD2_CRC_CONTENT];
+            uint8_t packageHeaderChecksum   = buffer[PAK_HEAD3_CRC_HEADER];
+
+            Package* package = new Package();
+            package->identity = packageIdentity;
+            package->contentLength = packageContentLength;
+
+            for (size_t i = 0; i < packageContentLength; i++)
+            {
+                package->content[i] = buffer[PAK_LENGTH + i];
+            }
+
+            // Vorbereitung um das nächste Paket zu lesen. (Cache leeren etc.)
+            changeState(BusDriverState::PackageHeader);
+
+            // Später Speicherfreigabe nicht vergessen.
+            return package;
+        }
+        case BusDriverState::PackageError: {
+            errors++;
+            changeState(BusDriverState::SynchronizeSignal);
+            
+            break;
+        }
+    }
+
+    // Kein vollständiges Paket empfangen.
+    return NULL;
 }

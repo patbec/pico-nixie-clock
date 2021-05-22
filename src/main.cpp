@@ -1,5 +1,6 @@
 #include "pico/stdlib.h"
 #include "pico/multicore.h"
+#include "stdio.h"
 #include "../lib/TubeDriver.h"
 #include "../lib/ClockDriver.h"
 #include "../lib/BusDriver.h"
@@ -7,12 +8,36 @@
 void core1_entry() {
     while(true) {
        sleep_us(200000); // Wait 200ms
-       BusDriver::sendData(NULL, 27);
+
+        Package p = Package();
+        p.identity = 'M';
+        p.content[0] = 'A';
+        p.content[1] = 'B';
+        p.content[2] = 'C';
+        p.content[3] = 'D';
+        p.content[4] = 'Q';
+        p.content[5] = 'W';
+        p.content[6] = 'Z';
+
+        p.contentLength = 7; // Nicht ab Index Null zählen.
+        
+        BusDriver::sendData(p, 27);
     }
 }
 
 int main()
 {
+    // bool debug[8] = {0,1,0,0,1,1,0,1};
+    // uint8_t result = 0;
+
+    // for (size_t i = 0; i <= 7; i++)
+    // {
+    //     result |= debug[i] << (7 - i);
+    //     /* code */
+    // }
+    // return result;
+
+
     multicore_launch_core1(core1_entry);
 
     struct TubePinLayout pinLayoutPoints;
@@ -85,10 +110,18 @@ int main()
     //}
 
     BusDriver *bus = new BusDriver(26);
+    Package *package;
 
     while (true)
     {
-        bus->readData(); 
+        package = bus->readData();
+
+        if(package != nullptr) {
+            printf("Paket empfangen: /s", package->identity);
+
+            delete package;
+        }
+
         clock->clock();
 
         // tube1->showDigit(counter);

@@ -6,9 +6,10 @@
 class CRC8
 {
 public:
-    static uint8_t Compute_CRC8(uint8_t buffer[], int offset, int count);
+    static uint8_t Compute_CRC8(uint8_t buffer[], int start, int end);
 
+    static const int TABLE[256];
 private:
-    // static const uint8_t crc_table[];
+
 };
 #endif
