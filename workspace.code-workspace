@@ -18,6 +18,7 @@
 				"runToEntryPoint": "main",
 				"interface": "swd",
 				"svdFile": "${env:PICO_SDK_PATH}/src/rp2040/hardware_regs/rp2040.svd",
+				"preLaunchTask": "Compile",
 				"configFiles": [
 					"interface/picoprobe.cfg",
 					"target/rp2040.cfg"
@@ -34,6 +35,18 @@
 				"detail": "Build and install picotool from source to upload code to your pico via BOOTSEL.",
 				"type": "shell",
 				"command": "picotool load 'build/${workspaceFolderBasename}.uf2' && picotool reboot",
+				"args": [],
+				"problemMatcher": [],
+				"group": {
+					"kind": "build",
+					"isDefault": true
+				}
+			},
+			{
+				"label": "Compile",
+				"detail": "Compile the current code.",
+				"type": "shell",
+				"command": "cd build && make -j4",
 				"args": [],
 				"problemMatcher": [],
 				"group": {
