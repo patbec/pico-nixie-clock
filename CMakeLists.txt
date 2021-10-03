@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.15)
 include(include/pico_sdk_import.cmake)
 # Name und Version des Projekts: 
 project(pico-nixie-clock VERSION 1.0.0) 
+
 # Das Projekt mit einer Quelldatei verknüpfen, das das Hauptprogramm enthält:
 add_executable(pico-nixie-clock
     "lib/TubeDriver.h"
@@ -18,10 +19,18 @@ add_executable(pico-nixie-clock
     "lib/CRC8.cpp"
     "lib/RadioDriver.h"
     "lib/RadioDriver.cpp"
-    "src/main.cpp")
+    "src/main.cpp"
+)
 
 # Angabe der benötigten Bibliothek(en): 
-target_link_libraries(pico-nixie-clock hardware_i2c pico_stdlib pico_multicore hardware_rtc)
+target_link_libraries(
+    pico-nixie-clock
+    hardware_i2c
+    hardware_spi
+    pico_stdlib
+    pico_multicore hardware_rtc
+)
+
 # Initialisieren des SDK: 
 pico_sdk_init()
 # Zugriff auf USB und UART ermöglichen (1 = enable, 0 = disable): 

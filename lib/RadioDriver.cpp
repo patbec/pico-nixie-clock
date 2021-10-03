@@ -33,6 +33,7 @@ On Oct 22, 2016 10:07 PM, "Simon Monk" <srmonk@gmail.com> wrote:
 */
 
 #include "pico/stdlib.h"
+#include "hardware/spi.h"
 #include "RadioDriver.h"
 
 /****************************************************************/
@@ -52,35 +53,22 @@ uint8_t PaTabel[8] = {0x60, 0x60, 0x60, 0x60, 0x60, 0x60, 0x60, 0x60};
 ****************************************************************/
 void RadioDriver::SpiInit(void)
 {
+    gpio_init(SS_PIN);
+    gpio_set_dir(SS_PIN, GPIO_OUT);
+
+    // initialize spi at 5 MHz.
+    spi_init(spi0, 5000000);
+
+    spi_set_format( spi0,       // SPI instance
+                    8,          // Number of bits per tranfser
+                    SPI_CPOL_1, // Polarity (CPOL)
+                    SPI_CPHA_1, // Phase (CPHA)
+                    SPI_MSB_FIRST);
+
     // initialize the SPI pins
-
-    pinMode(SCK_PIN, OUTPUT);
-    pinMode(MOSI_PIN, OUTPUT);
-    pinMode(MISO_PIN, INPUT);
-    pinMode(SS_PIN, OUTPUT);
-
-    // enable SPI Master, MSB, SPI mode 0, FOSC/4
-    SpiMode(0);
-}
-/****************************************************************
-*FUNCTION NAME:SpiMode
-*FUNCTION     :set spi mode
-*INPUT        :        config               mode
-               (0<<CPOL) | (0 << CPHA)		 0
-               (0<<CPOL) | (1 << CPHA)		 1
-               (1<<CPOL) | (0 << CPHA)		 2
-               (1<<CPOL) | (1 << CPHA)		 3
-*OUTPUT       :none
-****************************************************************/
-void RadioDriver::SpiMode(uint8_t config)
-{
-    uint8_t tmp;
-
-    // enable SPI master with configuration uint8_t specified
-    SPCR = 0;
-    SPCR = (config & 0x7F) | (1 << SPE) | (1 << MSTR);
-    tmp = SPSR;
-    tmp = SPDR;
+    gpio_set_function(SCK_PIN, GPIO_FUNC_SPI);  
+    gpio_set_function(MOSI_PIN, GPIO_FUNC_SPI);
+    gpio_set_function(MISO_PIN, GPIO_FUNC_SPI);
 }
 
 /****************************************************************
@@ -105,8 +93,11 @@ uint8_t RadioDriver::SpiTransfer(uint8_t value)
 ****************************************************************/
 void RadioDriver::GDO_Set(void)
 {
-    pinMode(GDO0, INPUT);
-    pinMode(GDO2, INPUT);
+    gpio_init(GDO0);
+    gpio_set_dir(GDO0, GPIO_IN);
+
+    gpio_init(GDO2);
+    gpio_set_dir(GDO2, GPIO_IN);
 }
 
 /****************************************************************
@@ -117,17 +108,17 @@ void RadioDriver::GDO_Set(void)
 ****************************************************************/
 void RadioDriver::Reset(void)
 {
-    digitalWrite(SS_PIN, LOW);
-    delay(1);
-    digitalWrite(SS_PIN, HIGH);
-    delay(1);
-    digitalWrite(SS_PIN, LOW);
-    while (digitalRead(MISO_PIN))
+    gpio_put(SS_PIN, false);
+    sleep_us(1000);
+    gpio_put(SS_PIN, true);
+    sleep_us(1);
+    gpio_put(SS_PIN, false);
+    while (gpio_get(MISO_PIN))
         ;
     SpiTransfer(CC1101_SRES);
-    while (digitalRead(MISO_PIN))
+    while (gpio_get(MISO_PIN))
         ;
-    digitalWrite(SS_PIN, HIGH);
+    gpio_put(SS_PIN, true);
 }
 
 /****************************************************************
@@ -140,9 +131,9 @@ void RadioDriver::Init(void)
 {
     SpiInit(); //spi initialization
     GDO_Set(); //GDO set
-    digitalWrite(SS_PIN, HIGH);
-    digitalWrite(SCK_PIN, HIGH);
-    digitalWrite(MOSI_PIN, LOW);
+    gpio_put(SS_PIN, true);
+    gpio_put(SCK_PIN, true);
+    gpio_put(MOSI_PIN, false);
     Reset();                                      //CC1101 reset
     RegConfigSettings(F_433);                     //CC1101 register config
     SpiWriteBurstReg(CC1101_PATABLE, PaTabel, 8); //CC1101 PATABLE config
@@ -158,9 +149,9 @@ void RadioDriver::Init(uint8_t f)
 {
     SpiInit(); //spi initialization
     GDO_Set(); //GDO set
-    digitalWrite(SS_PIN, HIGH);
-    digitalWrite(SCK_PIN, HIGH);
-    digitalWrite(MOSI_PIN, LOW);
+    gpio_put(SS_PIN, true);
+    gpio_put(SCK_PIN, true);
+    gpio_put(MOSI_PIN, false);
     Reset();                                      //CC1101 reset
     RegConfigSettings(f);                         //CC1101 register config
     SpiWriteBurstReg(CC1101_PATABLE, PaTabel, 8); //CC1101 PATABLE config
@@ -174,12 +165,12 @@ void RadioDriver::Init(uint8_t f)
 ****************************************************************/
 void RadioDriver::SpiWriteReg(uint8_t addr, uint8_t value)
 {
-    digitalWrite(SS_PIN, LOW);
-    while (digitalRead(MISO_PIN))
+    gpio_put(SS_PIN, false);
+    while (gpio_get(MISO_PIN))
         ;
     SpiTransfer(addr);
     SpiTransfer(value);
-    digitalWrite(SS_PIN, HIGH);
+    gpio_put(SS_PIN, true);
 }
 
 /****************************************************************
@@ -193,15 +184,15 @@ void RadioDriver::SpiWriteBurstReg(uint8_t addr, uint8_t *buffer, uint8_t num)
     uint8_t i, temp;
 
     temp = addr | WRITE_BURST;
-    digitalWrite(SS_PIN, LOW);
-    while (digitalRead(MISO_PIN))
+    gpio_put(SS_PIN, false);
+    while (gpio_get(MISO_PIN))
         ;
     SpiTransfer(temp);
     for (i = 0; i < num; i++)
     {
         SpiTransfer(buffer[i]);
     }
-    digitalWrite(SS_PIN, HIGH);
+    gpio_put(SS_PIN, true);
 }
 
 /****************************************************************
@@ -212,11 +203,11 @@ void RadioDriver::SpiWriteBurstReg(uint8_t addr, uint8_t *buffer, uint8_t num)
 ****************************************************************/
 void RadioDriver::SpiStrobe(uint8_t strobe)
 {
-    digitalWrite(SS_PIN, LOW);
-    while (digitalRead(MISO_PIN))
+    gpio_put(SS_PIN, false);
+    while (gpio_get(MISO_PIN))
         ;
     SpiTransfer(strobe);
-    digitalWrite(SS_PIN, HIGH);
+    gpio_put(SS_PIN, true);
 }
 
 /****************************************************************
@@ -230,12 +221,12 @@ uint8_t RadioDriver::SpiReadReg(uint8_t addr)
     uint8_t temp, value;
 
     temp = addr | READ_SINGLE;
-    digitalWrite(SS_PIN, LOW);
-    while (digitalRead(MISO_PIN))
+    gpio_put(SS_PIN, false);
+    while (gpio_get(MISO_PIN))
         ;
     SpiTransfer(temp);
     value = SpiTransfer(0);
-    digitalWrite(SS_PIN, HIGH);
+    gpio_put(SS_PIN, true);
 
     return value;
 }
@@ -251,15 +242,15 @@ void RadioDriver::SpiReadBurstReg(uint8_t addr, uint8_t *buffer, uint8_t num)
     uint8_t i, temp;
 
     temp = addr | READ_BURST;
-    digitalWrite(SS_PIN, LOW);
-    while (digitalRead(MISO_PIN))
+    gpio_put(SS_PIN, false);
+    while (gpio_get(MISO_PIN))
         ;
     SpiTransfer(temp);
     for (i = 0; i < num; i++)
     {
         buffer[i] = SpiTransfer(0);
     }
-    digitalWrite(SS_PIN, HIGH);
+    gpio_put(SS_PIN, true);
 }
 
 /****************************************************************
@@ -273,12 +264,12 @@ uint8_t RadioDriver::SpiReadStatus(uint8_t addr)
     uint8_t value, temp;
 
     temp = addr | READ_BURST;
-    digitalWrite(SS_PIN, LOW);
-    while (digitalRead(MISO_PIN))
+    gpio_put(SS_PIN, false);
+    while (gpio_get(MISO_PIN))
         ;
     SpiTransfer(temp);
     value = SpiTransfer(0);
-    digitalWrite(SS_PIN, HIGH);
+    gpio_put(SS_PIN, true);
 
     return value;
 }
@@ -358,9 +349,9 @@ void RadioDriver::SendData(uint8_t *txBuffer, uint8_t size)
     SpiWriteReg(CC1101_TXFIFO, size);
     SpiWriteBurstReg(CC1101_TXFIFO, txBuffer, size); //write data to send
     SpiStrobe(CC1101_STX);                           //start send
-    while (!digitalRead(GDO0))
+    while (!gpio_get(GDO0))
         ; // Wait for GDO0 to be set -> sync transmitted
-    while (digitalRead(GDO0))
+    while (gpio_get(GDO0))
         ;                   // Wait for GDO0 to be cleared -> end of packet
     SpiStrobe(CC1101_SFTX); //flush TXfifo
 }
@@ -384,9 +375,9 @@ void RadioDriver::SetReceive(void)
 ****************************************************************/
 uint8_t RadioDriver::CheckReceiveFlag(void)
 {
-    if (digitalRead(GDO0)) //receive data
+    if (gpio_get(GDO0)) //receive data
     {
-        while (digitalRead(GDO0))
+        while (gpio_get(GDO0))
             ;
         return 1;
     }
